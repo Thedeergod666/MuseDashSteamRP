@@ -1,0 +1,64 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <AssemblyName>MuseDashSteamRP</AssemblyName>
+        <RootNamespace>MuseDashSteamRP</RootNamespace>
+        <LangVersion>latest</LangVersion>
+        <Nullable>disable</Nullable>
+        <!-- Muse Dash install dir: env var MD_DIRECTORY wins, otherwise this machine's path -->
+        <GameFolder Condition="Exists('$(MD_DIRECTORY)')">$(MD_DIRECTORY)</GameFolder>
+        <GameFolder Condition="!Exists('$(MD_DIRECTORY)')">E:\Game\Steam\steamapps\common\Muse Dash</GameFolder>
+        <MelonLoader>$(GameFolder)\MelonLoader\</MelonLoader>
+        <MelonNET6>$(MelonLoader)\net6\</MelonNET6>
+        <MelonAssemblies>$(MelonLoader)\Il2CppAssemblies\</MelonAssemblies>
+    </PropertyGroup>
+
+    <!-- 引用 DLL 不复制进 bin(游戏程序集与 MelonLoader 组件运行时都在游戏目录) -->
+    <ItemDefinitionGroup>
+        <Reference Private="false"/>
+    </ItemDefinitionGroup>
+
+    <!-- test/ 是独立测试工程,不能被根工程的默认递归 Compile 吞进去 -->
+    <ItemGroup>
+        <Compile Remove="test\**"/>
+        <None Remove="test\**"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="MelonLoader">
+            <HintPath>$(MelonNET6)\MelonLoader.dll</HintPath>
+        </Reference>
+        <Reference Include="0Harmony">
+            <HintPath>$(MelonNET6)\0Harmony.dll</HintPath>
+        </Reference>
+        <Reference Include="Il2CppInterop.Common">
+            <HintPath>$(MelonNET6)\Il2CppInterop.Common.dll</HintPath>
+        </Reference>
+        <Reference Include="Il2CppInterop.Runtime">
+            <HintPath>$(MelonNET6)\Il2CppInterop.Runtime.dll</HintPath>
+        </Reference>
+        <Reference Include="Il2Cppmscorlib">
+            <HintPath>$(MelonAssemblies)\Il2Cppmscorlib.dll</HintPath>
+        </Reference>
+        <Reference Include="Il2CppSystem">
+            <HintPath>$(MelonAssemblies)\Il2CppSystem.dll</HintPath>
+        </Reference>
+        <Reference Include="Assembly-CSharp">
+            <HintPath>$(MelonAssemblies)\Assembly-CSharp.dll</HintPath>
+        </Reference>
+        <Reference Include="Il2Cppcom.rlabrecque.steamworks.net">
+            <HintPath>$(MelonAssemblies)\Il2Cppcom.rlabrecque.steamworks.net.dll</HintPath>
+        </Reference>
+        <Reference Include="UnityEngine.CoreModule">
+            <HintPath>$(MelonAssemblies)\UnityEngine.CoreModule.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+    <!-- 游戏正在运行时 Mods 里的 dll 被锁,用 -p:SkipModsCopy=true 跳过部署只编译 -->
+    <Target Name="CopyToMods" AfterTargets="Build" Condition="'$(SkipModsCopy)' != 'true' And Exists('$(GameFolder)\MelonLoader')">
+        <Copy SourceFiles="$(OutputPath)$(AssemblyName).dll" DestinationFolder="$(GameFolder)\Mods\" />
+        <Message Text="Installed -> $(GameFolder)\Mods\$(AssemblyName).dll" Importance="High" />
+    </Target>
+
+</Project>

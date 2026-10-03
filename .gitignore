@@ -1,0 +1,6 @@
+bin/
+obj/
+
+# Valve SDK 的 steam_api64.dll 不入库(分发条款限制),使用者从游戏目录自行复制:
+# <游戏目录>\MuseDash_Data\Plugins\x86_64\steam_api64.dll
+test/SteamRPTest/steam_api64.dll
